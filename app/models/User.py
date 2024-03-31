@@ -1,16 +1,9 @@
-from enum import Enum as PythonEnum
-
 from sqlalchemy import Column, String, Boolean, Integer, Enum, Date
 
+from app.enums import GenderEnum
 from app.models import BaseModel
 
-
-class Gender(PythonEnum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
-
-
-gender_values = [member.value for member in Gender.__members__.values()]
+gender_values = [member.value for member in GenderEnum.__members__.values()]
 
 
 class User(BaseModel):
@@ -20,8 +13,8 @@ class User(BaseModel):
     fullname = Column(String(100), nullable=False)
     email = Column(String(150), unique=True, nullable=True)
     password = Column(String(65), nullable=False)
-    gender = Column(Enum(*gender_values, name='gender'), default=Gender.MALE.value,
-                    server_default=Gender.MALE.value, nullable=False)
+    gender = Column(Enum(*gender_values, name='gender'), default=GenderEnum.MALE.value,
+                    server_default=GenderEnum.MALE.value, nullable=False)
     birth_day = Column(Date, nullable=False)
     avatar = Column(String, nullable=True)
 

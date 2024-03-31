@@ -18,7 +18,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> ModelType:
         db_obj = self._model(**obj_in.dict())
         session.add(db_obj)
-        await session.commit()
+        await session.flush()
+        await session.refresh(db_obj)
         return db_obj
 
     async def get(self, session: AsyncSession, *args, **kwargs) -> Optional[ModelType]:
@@ -75,7 +76,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 if field in update_data:
                     setattr(db_obj, field, update_data[field])
             session.add(db_obj)
-            await session.commit()
+            await session.flush()
+            await session.refresh(db_obj)
+
         return db_obj
 
     async def delete(
@@ -83,7 +86,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> ModelType:
         db_obj = db_obj or await self.get(session, *args, **kwargs)
         await session.delete(db_obj)
-        await session.commit()
+        await session.flush()
+        await session.refresh(db_obj)
         return db_obj
 
     async def create_bulk(
@@ -91,8 +95,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> List[ModelType]:
         db_objs = [self._model(**obj_in.dict()) for obj_in in objs_in]
         session.add_all(db_objs)
-        await session.commit()
-        return db_objs
+        await session.flush()
+        created_objs = []
+        for obj in db_objs:
+            await session.refresh(obj)
+            created_objs.append(obj)
+        return created_objs
 
     async def update_bulk(
             self,
@@ -110,12 +118,22 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             for field in obj_data:
                 if field in update_data:
                     setattr(db_obj, field, update_data[field])
-
-        await session.commit()
-        return db_objs
-
-    async def delete_bulk(self, session: AsyncSession, db_objs: Optional[List[ModelType]] = None):
-        db_objs = db_objs or await self.get_multi(session)
+        session.add_all(db_objs)
+        await session.flush()
+        updated_objs = []
         for obj in db_objs:
-            await session.delete(obj)  # Assuming self.delete is your method for deleting individual objects.
-        await session.commit()
+            await session.refresh(obj)
+            updated_objs.append(obj)
+        return updated_objs
+
+    async def delete_bulk(
+            self, session: AsyncSession, db_objs: Optional[List[ModelType]] = None
+    ) -> List[ModelType]:
+        db_objs = db_objs or await self.get_multi(session)
+        deleted_objs = []
+        for obj in db_objs:
+            await session.delete(obj)
+            await session.flush()
+            await session.refresh(obj)
+            deleted_objs.append(obj)
+        return deleted_objs

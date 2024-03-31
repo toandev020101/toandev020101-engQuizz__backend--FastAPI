@@ -1,16 +1,16 @@
-from typing import Optional
 from datetime import timedelta, datetime
+from typing import Optional
 
+from fastapi import Response
 from jose import jwt
-from fastapi import Response, status, HTTPException
 
-from app.models import User
 from app.core import get_settings
+from app.models import User
 
 settings = get_settings()
 
 
-def generate_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def generate_token(data: dict, secret: str, expires_delta: Optional[timedelta] = None) -> str:
     # Prepare the data to be encoded in the JWT
     to_encode = data.copy()
     if expires_delta:
@@ -22,15 +22,15 @@ def generate_token(data: dict, expires_delta: Optional[timedelta] = None) -> str
     to_encode.update({"exp": expire})
 
     # Generate and return the JWT token
-    encode_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
+    encode_jwt = jwt.encode(to_encode, secret, algorithm=settings.ALGORITHM)
     return encode_jwt
 
 
 def decode_token(token: str) -> dict:
     try:
         # Attempt to decode the token, and check for expiration
-        decode_token = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.ALGORITHM])
-        return decode_token if datetime.utcfromtimestamp(decode_token["exp"]) >= datetime.utcnow() else None
+        decode_data = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.ALGORITHM])
+        return decode_data if datetime.utcfromtimestamp(decode_data["exp"]) >= datetime.utcnow() else None
     except jwt.ExpiredSignatureError:
         # Handle expired token
         return None
@@ -54,13 +54,21 @@ def verify_jwt(token: str):
 
 def create_access_token(user: User):
     return (generate_token(data={"user_id": user.id, "email": user.email},
+                           secret=settings.JWT_SECRET,
                            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)))
+
+
+def create_email_token(user: User):
+    return (generate_token(data={"user_id": user.id, "email": user.email},
+                           secret=settings.EMAIL_SECRET,
+                           expires_delta=timedelta(minutes=settings.EMAIL_TOKEN_EXPIRE_MINUTES)))
 
 
 def send_refresh_token(response: Response, user: User):
     refresh_token = (
         generate_token(
             data={"user_id": user.id, "email": user.email, "token_version": user.token_version},
+            secret=settings.JWT_SECRET,
             expires_delta=timedelta(hours=settings.REFRESH_TOKEN_EXPIRE_HOURS)))
 
     response.set_cookie(

@@ -22,8 +22,7 @@ class UserCreateSchema(UserBase):
 
 class UserUpdateSchema(UserBase):
     id: int
-    avatar: str
-    is_verified: bool
+    avatar: str = None
     is_admin: bool
 
 

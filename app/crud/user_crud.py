@@ -14,16 +14,27 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
     async def find_one_by_email(self, email: str, session: AsyncSession) -> Optional[User]:
         return await self.get(session, User.email == email)
 
-    async def create_one(self, schema: UserCreateSchema, session: AsyncSession):
-        return await self.create(session=session, obj_in=schema)
+    async def create_one(self, user_data: UserCreateSchema, session: AsyncSession):
+        return await self.create(session=session, obj_in=user_data)
 
     async def update_token_version(
-        self, user_id: int, token_version: int, session: AsyncSession
+        self, id: int, token_version: int, session: AsyncSession
     ) -> Optional[User]:
-        user = await self.get(session, id=user_id)
+        user = await self.get(session, id=id)
 
         if user:
             update_data = {"token_version": token_version}
+            await self.update(session, obj_in=update_data, db_obj=user)
+
+        return user
+
+    async def verify_email(
+        self, id: int, session: AsyncSession
+    ) -> Optional[User]:
+        user = await self.get(session, id=id)
+
+        if user:
+            update_data = {"is_verified": True}
             await self.update(session, obj_in=update_data, db_obj=user)
 
         return user

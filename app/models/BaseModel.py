@@ -1,6 +1,7 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 
-from sqlalchemy import Column, Integer, DateTime
+from sqlalchemy import Column, DateTime
+from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.sql import func
 
 from app.core import Base
@@ -15,7 +16,7 @@ class BaseModel(Base):
                          nullable=False)
 
     @staticmethod
-    def extra_relationships(model_name: str, model, relationship_un_selects: Dict[str, List[str]]):
+    def extra_relationships(model_name: str, model, relationship_un_selects: Dict[str, Any]):
         result = {}
         for column in model.__table__.columns:
             if (not relationship_un_selects or model_name not in relationship_un_selects or column.name
@@ -23,8 +24,8 @@ class BaseModel(Base):
                 result[column.name] = getattr(model, column.name)
         return result
 
-    def to_dict(self, un_selects: List[str] = None, relationship_un_selects=None,
-                relationships: List[str] = None):
+    def dict(self, un_selects: List[str] = None, relationship_un_selects: Dict[str, Any] = None,
+             relationships: Dict[str, Any] = None):
         result = {}
         # Get the values of the columns
         for column in self.__table__.columns:
@@ -33,18 +34,23 @@ class BaseModel(Base):
 
         # Take the value of relationships if appointed
         if relationships:
-            for relationship_name in relationships:
+            for relationship_name, subfields in relationships.items():
                 if hasattr(self, relationship_name):
                     value = getattr(self, relationship_name)
                     if value is not None:
                         if isinstance(value, list):
                             result[relationship_name] = [
-                                self.extra_relationships(model_name=relationship_name, model=item,
-                                                         relationship_un_selects=relationship_un_selects) for item in
-                                value]
+                                item.dict(un_selects=relationship_un_selects.get(relationship_name),
+                                          relationship_un_selects=relationship_un_selects.get(relationship_name),
+                                          relationships=subfields) for item in value
+                            ]
+                        elif isinstance(value.property, RelationshipProperty):
+                            result[relationship_name] = value.dict(
+                                un_selects=relationship_un_selects.get(relationship_name),
+                                relationship_un_selects=relationship_un_selects.get(relationship_name),
+                                relationships=subfields
+                            )
                         else:
-                            result[relationship_name] = self.extra_relationships(model_name=relationship_name,
-                                                                                 model=value,
-                                                                                 relationship_un_selects=relationship_un_selects)
+                            result[relationship_name] = value
 
         return result

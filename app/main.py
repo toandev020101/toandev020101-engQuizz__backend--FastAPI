@@ -1,12 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.apis.endpoints import *
-from app.core import get_settings
+from app.core import get_settings, Base, engine
 from app.middlewares import logging_middleware
+from app.routes import init_router
 
 settings = get_settings()
+origins = [settings.CLIENT_URL]
 
 
 def init_app():
@@ -17,7 +19,20 @@ def init_app():
     )
 
     app.add_middleware(BaseHTTPMiddleware, dispatch=logging_middleware)
-    app.include_router(auth_router)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.on_event("startup")
+    async def startup():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    init_router(app)
 
     return app
 

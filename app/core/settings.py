@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     APP_VERSION: str = os.environ.get("APP_VERSION", "0.1.0")
     APP_HOST: str = os.environ.get("APP_HOST", "localhost")
     APP_PORT: int = os.environ.get("APP_PORT", 8000)
+
+    CLIENT_URL: str = os.environ.get("CLIENT_URL", "http://localhost")
     BASE_API_SLUG: str = os.environ.get("BASE_API_SLUG", "/v1/api")
     DEBUG: bool = bool(os.environ.get("DEBUG", False))
 
@@ -41,6 +43,20 @@ class Settings(BaseSettings):
 
     # OPA
     OPA_URL: str = os.environ.get("OPA_URL", "http://localhost:8181/v1/data/authz")
+
+    # EMAIL
+    EMAIL_TOKEN_EXPIRE_MINUTES: int = os.environ.get("EMAIL_TOKEN_EXPIRE_MINUTES", "15")
+    EMAIL_SECRET: str = os.environ.get("EMAIL_SECRET", "649fb93ef34e4fdf4187709c84d643dd61ce730d91856418fdcf563f895ea40f")
+    EMAIL_USERNAME: str = os.environ.get("EMAIL_USERNAME", "admin@gmail.com")
+    EMAIL_PASSWORD: str = os.environ.get("EMAIL_PASSWORD", "123456")
+    EMAIL_PORT: int = os.environ.get("EMAIL_PORT", 465)
+    EMAIL_SERVER: str = os.environ.get("EMAIL_SERVER", "smtp.gmail.com")
+    EMAIL_FROM_NAME: str = os.environ.get("EMAIL_FROM_NAME", "EngQuizz")
+
+    # ADMIN
+    ADMIN_FULLNAME: str = os.environ.get("ADMIN_FULLNAME", "Admin")
+    ADMIN_EMAIL: str = os.environ.get("ADMIN_EMAIL", "admin@gmail.com")
+    ADMIN_PASSWORD: str = os.environ.get("ADMIN_PASSWORD", "123456")
 
 
 @lru_cache()

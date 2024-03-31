@@ -45,7 +45,7 @@ async def logging_middleware(request: Request, call_next):
     if response_body:
         response_log_dict['status_code'] = response_body.get('status_code')
         response_log_dict['detail'] = response_body.get('detail')
-        response_log_dict['result'] = response_body.get('result')
+        response_log_dict['data'] = response_body.get('data')
 
     logger.info(response_log_dict)
 

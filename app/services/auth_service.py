@@ -1,49 +1,58 @@
 from fastapi import Request, Response, HTTPException, status
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud import crud_user
-from app.models import User
 from app.core import get_settings
+from app.crud import crud_user
+from app.enums import EmailEnum
 from app.schemas import UserCreateSchema, UserLoginSchema
 from app.utils import hash_password, create_access_token, send_refresh_token, verify_password, decode_token, \
-    clear_refresh_token
+    clear_refresh_token, send_email
+from app.utils.jwt_util import create_email_token
 
 settings = get_settings()
 
 
 class AuthService:
     @staticmethod
-    async def register(schema: UserCreateSchema, response: Response, session: AsyncSession):
+    async def register(request: Request, user_data: UserCreateSchema, response: Response, session: AsyncSession):
         # check email
-        user = await crud_user.find_one_by_email(email=schema.email, session=session)
+        user = await crud_user.find_one_by_email(email=user_data.email, session=session)
         if user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail={"email": "Email đã tồn tại!"})
 
         # insert to table
-        schema.password = hash_password(schema.password)
-        created_user = await crud_user.create_one(schema=schema, session=session)
+        user_data.password = hash_password(user_data.password)
+        created_user = await crud_user.create_one(user_data=user_data, session=session)
 
         # generate token
         access_token = create_access_token(user=created_user)
 
         # send refresh token
         send_refresh_token(response=response, user=created_user)
-        return {"user": created_user.to_dict(un_selects=["password"]), "access_token": access_token}
+
+        # send mail
+        email_token = create_email_token(user=created_user)
+        url = settings.CLIENT_URL + "/xac-minh-email/" + email_token
+
+        await send_email(email_type=EmailEnum.VERIFY, emails=[created_user.email],
+                         data={"request": request, "verify_link": url, "fullname": created_user.fullname})
+        return {"user": created_user.dict(un_selects=["password"]), "access_token": access_token}
 
     @staticmethod
-    async def login(schema: UserLoginSchema, response: Response, session: AsyncSession):
+    async def login(user_data: UserLoginSchema, response: Response, session: AsyncSession):
         # check user
-        user = await crud_user.find_one_by_email(email=schema.email, session=session)
+        user = await crud_user.find_one_by_email(email=user_data.email, session=session)
 
         if not user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Tên người dùng hoặc mật khẩu không chính xác!")
+                                detail={"email": "Email hoặc mật khẩu không chính xác!",
+                                        "password": "Email hoặc mật khẩu không chính xác!"})
 
-        if not verify_password(schema.password, user.password):
+        if not verify_password(user_data.password, user.password):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Tên người dùng hoặc mật khẩu không chính xác!")
+                status_code=status.HTTP_400_BAD_REQUEST, detail={"email": "Email hoặc mật khẩu không chính xác!",
+                                                                 "password": "Email hoặc mật khẩu không chính xác!"})
 
         # generate token
         access_token = create_access_token(user=user)
@@ -51,7 +60,7 @@ class AuthService:
         # send refresh token
         send_refresh_token(response=response, user=user)
 
-        return {"user": user.to_dict(un_selects=["password"]), "access_token": access_token}
+        return {"user": user.dict(un_selects=["password"]), "access_token": access_token}
 
     @staticmethod
     async def refresh_token(request: Request, response: Response, session: AsyncSession):
@@ -74,9 +83,9 @@ class AuthService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Token không hợp lệ!")
 
     @staticmethod
-    async def logout(response: Response, user_decode: dict, session: AsyncSession):
+    async def logout(response: Response, id: int, session: AsyncSession):
         # check username
-        user = await crud_user.find_one_by_id(id=user_decode.get('user_id'), session=session)
+        user = await crud_user.find_one_by_id(id=id, session=session)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Người dùng không tồn tại!")
