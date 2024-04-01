@@ -21,6 +21,8 @@ python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 requests = "^2.31.0"
 fastapi-mail = {extras = ["httpx"], version = "^1.4.1"}
+python-multipart = "^0.0.9"
+aiofiles = "^23.2.1"
 
 
 [build-system]

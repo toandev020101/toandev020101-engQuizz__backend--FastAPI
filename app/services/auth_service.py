@@ -25,19 +25,59 @@ class AuthService:
         user_data.password = hash_password(user_data.password)
         created_user = await crud_user.create_one(user_data=user_data, session=session)
 
+        # send mail
+        email_token = create_email_token(user=created_user)
+        url = settings.CLIENT_URL + "/xac-minh-email?token=" + email_token
+
+        await send_email(email_type=EmailEnum.VERIFY, emails=[created_user.email],
+                         data={"request": request, "verify_link": url, "fullname": created_user.fullname})
+
         # generate token
         access_token = create_access_token(user=created_user)
 
         # send refresh token
         send_refresh_token(response=response, user=created_user)
 
-        # send mail
-        email_token = create_email_token(user=created_user)
-        url = settings.CLIENT_URL + "/xac-minh-email/" + email_token
-
-        await send_email(email_type=EmailEnum.VERIFY, emails=[created_user.email],
-                         data={"request": request, "verify_link": url, "fullname": created_user.fullname})
         return {"user": created_user.dict(un_selects=["password"]), "access_token": access_token}
+
+    @staticmethod
+    async def verify_email(token: str, response: Response, session: AsyncSession):
+        user_decode = decode_token(token=token)
+        if not user_decode:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token không hợp lệ!")
+
+        user = await crud_user.find_one_by_id(id=user_decode.get("user_id"), session=session)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token không hợp lệ!")
+
+        if user.is_verified:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tài khoản đã xác minh email!")
+
+        updated_user = await crud_user.verify_email(id=user.id, session=session)
+
+        # generate token
+        access_token = create_access_token(user=updated_user)
+
+        # send refresh token
+        send_refresh_token(response=response, user=updated_user)
+
+        return {"user": updated_user.dict(un_selects=["password"]), "access_token": access_token}
+
+    @staticmethod
+    async def resend_email(user_id: int, request: Request, session: AsyncSession):
+        user = await crud_user.find_one_by_id(id=user_id, session=session)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy tài khoản!")
+
+        if user.is_verified:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tài khoản đã xác minh email!")
+
+        # send mail
+        email_token = create_email_token(user=user)
+        url = settings.CLIENT_URL + "/xac-minh-email?token=" + email_token
+
+        await send_email(email_type=EmailEnum.VERIFY, emails=[user.email],
+                         data={"request": request, "verify_link": url, "fullname": user.fullname})
 
     @staticmethod
     async def login(user_data: UserLoginSchema, response: Response, session: AsyncSession):

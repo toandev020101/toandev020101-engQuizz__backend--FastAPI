@@ -1,3 +1,4 @@
+import gzip
 import json
 import time
 from fastapi import Request
@@ -13,6 +14,14 @@ async def logging_middleware(request: Request, call_next):
     headers = {key: value for key, value in request.headers.items() if key.lower() in ['content-type', 'authorization']}
     request_body = await request.body()
 
+    if request_body:
+        try:
+            request_body = json.loads(request_body)
+        except:
+            request_body = None
+    else:
+        request_body = None
+
     # write log for request
     request_log_dict = {
         'type': 'request',
@@ -20,7 +29,7 @@ async def logging_middleware(request: Request, call_next):
         'method': request.method,
         'headers': headers,
         'cookies': request.cookies,
-        'body': json.loads(request_body) if request_body else None
+        'body': request_body
     }
     logger.info(request_log_dict)
 

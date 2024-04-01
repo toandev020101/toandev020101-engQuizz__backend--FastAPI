@@ -8,3 +8,5 @@ settings = get_settings()
 
 def init_router(app: FastAPI):
     app.include_router(auth_router)
+    app.include_router(user_router)
+    app.include_router(upload_router)

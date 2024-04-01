@@ -1,7 +1,10 @@
+import os
+
 import uvicorn
 from fastapi import FastAPI
-from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.staticfiles import StaticFiles
 
 from app.core import get_settings, Base, engine
 from app.middlewares import logging_middleware
@@ -32,6 +35,8 @@ def init_app():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
+    os.makedirs(settings.UPLOAD_ROOT, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_ROOT), name="uploads")
     init_router(app)
 
     return app

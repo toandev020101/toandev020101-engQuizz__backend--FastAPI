@@ -12,6 +12,9 @@ load_dotenv(dotenv_path=env_path)
 
 class Settings(BaseSettings):
     # App
+    APP_ROOT: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    UPLOAD_ROOT: str = os.path.join(os.path.dirname(APP_ROOT), "uploads")
+
     APP_NAME: str = os.environ.get("APP_NAME", "FastAPI")
     APP_DESCRIPTION: str = os.environ.get("APP_DESCRIPTION", "")
     APP_VERSION: str = os.environ.get("APP_VERSION", "0.1.0")
@@ -19,6 +22,7 @@ class Settings(BaseSettings):
     APP_PORT: int = os.environ.get("APP_PORT", 8000)
 
     CLIENT_URL: str = os.environ.get("CLIENT_URL", "http://localhost")
+    SERVER_URL: str = f"http://{APP_HOST}:{APP_PORT}"
     BASE_API_SLUG: str = os.environ.get("BASE_API_SLUG", "/v1/api")
     DEBUG: bool = bool(os.environ.get("DEBUG", False))
 

@@ -14,7 +14,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self._model = model
 
     async def create(
-        self, session: AsyncSession, obj_in: CreateSchemaType
+            self, session: AsyncSession, obj_in: CreateSchemaType
     ) -> ModelType:
         db_obj = self._model(**obj_in.dict())
         session.add(db_obj)
@@ -29,7 +29,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalars().first()
 
     async def get_multi(
-        self, session: AsyncSession, *args, offset: int = 0, limit: int = 100, **kwargs
+            self, session: AsyncSession, *args, offset: int = 0, limit: int = 100, **kwargs
     ) -> List[ModelType]:
         result = await session.execute(
             select(self._model)
@@ -41,7 +41,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalars().all()
 
     async def get_all(
-        self, session: AsyncSession, *args, **kwargs
+            self, session: AsyncSession, *args, **kwargs
     ) -> List[ModelType]:
         result = await session.execute(
             select(self._model)
@@ -58,12 +58,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalar_one()
 
     async def update(
-        self,
-        session: AsyncSession,
-        *,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-        db_obj: Optional[ModelType] = None,
-        **kwargs
+            self,
+            session: AsyncSession,
+            *,
+            obj_in: Union[UpdateSchemaType, Dict[str, Any]],
+            db_obj: Optional[ModelType] = None,
+            **kwargs
     ) -> Optional[ModelType]:
         db_obj = db_obj or await self.get(session, **kwargs)
         if db_obj is not None:
@@ -82,12 +82,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def delete(
-        self, session: AsyncSession, *args, db_obj: Optional[ModelType] = None, **kwargs
+            self, session: AsyncSession, *args, db_obj: Optional[ModelType] = None, **kwargs
     ) -> ModelType:
         db_obj = db_obj or await self.get(session, *args, **kwargs)
         await session.delete(db_obj)
         await session.flush()
-        await session.refresh(db_obj)
         return db_obj
 
     async def create_bulk(
@@ -127,13 +126,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return updated_objs
 
     async def delete_bulk(
-            self, session: AsyncSession, db_objs: Optional[List[ModelType]] = None
+            self, session: AsyncSession, ids=None, db_objs: Optional[List[ModelType]] = None
     ) -> List[ModelType]:
-        db_objs = db_objs or await self.get_multi(session)
-        deleted_objs = []
+        db_objs = db_objs or await self.get_multi(session, self._model.id.in_(ids))
         for obj in db_objs:
             await session.delete(obj)
             await session.flush()
-            await session.refresh(obj)
-            deleted_objs.append(obj)
-        return deleted_objs
+        return db_objs

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request, Response, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import get_settings
-from app.services import AuthService, EmailService
 from app.apis.depends import check_auth, get_session
+from app.core import get_settings
 from app.schemas import ResponseSchema, UserCreateSchema, UserLoginSchema
+from app.services import AuthService
 
 settings = get_settings()
 
@@ -19,9 +19,15 @@ async def register(request: Request, user_data: UserCreateSchema, response: Resp
 
 
 @router.get("/verify-email/{token}", response_model=ResponseSchema)
-async def verify_email(token: str, session: AsyncSession = Depends(get_session)):
-    data = await EmailService.verify(token=token, session=session)
+async def verify_email(token: str, response: Response, session: AsyncSession = Depends(get_session)):
+    data = await AuthService.verify_email(token=token, response=response, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Xác minh email thành công", data=data)
+
+
+@router.get("/resend-email/{user_id}", response_model=ResponseSchema)
+async def resend_mail(user_id: int, request: Request, session: AsyncSession = Depends(get_session)):
+    await AuthService.resend_email(user_id=user_id, request=request, session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Gửi lại liên kết thành công")
 
 
 @router.post("/login", response_model=ResponseSchema)
