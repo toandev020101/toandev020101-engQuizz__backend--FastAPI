@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Boolean, Integer, Enum, Date
+from sqlalchemy.orm import relationship
 
 from app.enums import GenderEnum
 from app.models import BaseModel
@@ -21,3 +22,5 @@ class User(BaseModel):
     is_verified = Column(Boolean, default=False, server_default="false", nullable=False)
     is_admin = Column(Boolean, default=False, server_default="false", nullable=False)
     token_version = Column(Integer, default=0, server_default="0", nullable=False)
+
+    questions = relationship("Question", back_populates="creator", lazy="selectin", cascade="all, delete")

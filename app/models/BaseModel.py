@@ -1,7 +1,6 @@
-from typing import List, Dict, Any
+from typing import List, Dict
 
 from sqlalchemy import Column, DateTime
-from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.sql import func
 
 from app.core import Base, get_settings
@@ -18,53 +17,64 @@ class BaseModel(Base):
                          nullable=False)
 
     @staticmethod
-    def extra_relationships(model_name: str, model, relationship_un_selects: Dict[str, Any]):
+    def extra_relationships(model_name: str, model, relationship_levels: Dict[str, bool], current_level: int = 1):
         result = {}
+        if current_level <= 0:
+            return None
+
         for column in model.__table__.columns:
-            if (not relationship_un_selects or model_name not in relationship_un_selects or column.name
-                    not in relationship_un_selects[model_name]):
-                value = getattr(model, column.name)
-                # Add http://localhost only if the field is specified and is a string containing "uploads"
-                if isinstance(value, str) and 'uploads' in value:
-                    value = settings.SERVER_URL + value
-                result[column.name] = value
+            result[column.name] = getattr(model, column.name)
+
+        for relationship_name in model.__mapper__.relationships.keys():
+            if relationship_levels.get(relationship_name, False):
+                value = getattr(model, relationship_name)
+                if value is not None:
+                    if isinstance(value, list):
+                        result[relationship_name] = [
+                            BaseModel.extra_relationships(
+                                model_name=relationship_name,
+                                model=item,
+                                relationship_levels=relationship_levels,
+                                current_level=current_level - 1
+                            ) for item in value
+                        ]
+                    else:
+                        result[relationship_name] = BaseModel.extra_relationships(
+                            model_name=relationship_name,
+                            model=value,
+                            relationship_levels=relationship_levels,
+                            current_level=current_level - 1
+                        )
+
         return result
 
-    def dict(self, un_selects: List[str] = None, relationship_un_selects: Dict[str, Any] = None,
-             relationships: Dict[str, Any] = None):
+    def dict(self, un_selects: List[str] = None, relationship_levels: Dict[str, bool] = None):
         result = {}
-        # Get the values of the columns
         for column in self.__table__.columns:
             if not un_selects or column.name not in un_selects:
-                value = getattr(self, column.name)
-                # Add http://localhost only if the field is specified and is a string containing "uploads"
-                if isinstance(value, str) and 'uploads' in value:
-                    value = settings.SERVER_URL + value
-                result[column.name] = value
+                result[column.name] = getattr(self, column.name)
 
-        # Take the value of relationships if appointed
-        if relationships:
-            for relationship_name, subfields in relationships.items():
-                if hasattr(self, relationship_name):
+        if relationship_levels:
+            for relationship_name, include in relationship_levels.items():
+                if include and hasattr(self, relationship_name):
                     value = getattr(self, relationship_name)
                     if value is not None:
                         if isinstance(value, list):
                             result[relationship_name] = [
-                                item.dict(un_selects=relationship_un_selects.get(relationship_name),
-                                          relationship_un_selects=relationship_un_selects.get(relationship_name),
-                                          relationships=subfields) for item in value
+                                BaseModel.extra_relationships(
+                                    model_name=relationship_name,
+                                    model=item,
+                                    relationship_levels=relationship_levels,
+                                    current_level=1
+                                ) for item in value
                             ]
-                        elif isinstance(value.property, RelationshipProperty):
-                            result[relationship_name] = value.dict(
-                                un_selects=relationship_un_selects.get(relationship_name),
-                                relationship_un_selects=relationship_un_selects.get(relationship_name),
-                                relationships=subfields
-                            )
                         else:
-                            value = getattr(self, relationship_name)
-                            # Add http://localhost only if the field is specified and is a string containing "uploads"
-                            if isinstance(value, str) and 'uploads' in value:
-                                value = settings.SERVER_URL + value
-                            result[relationship_name] = value
+                            result[relationship_name] = BaseModel.extra_relationships(
+                                model_name=relationship_name,
+                                model=value,
+                                relationship_levels=relationship_levels,
+                                current_level=1
+                            )
 
         return result
+
