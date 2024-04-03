@@ -23,4 +23,9 @@ class User(BaseModel):
     is_admin = Column(Boolean, default=False, server_default="false", nullable=False)
     token_version = Column(Integer, default=0, server_default="0", nullable=False)
 
+    otp = relationship("OTP", back_populates="user", lazy="selectin", cascade="all, delete")
+    notifications = relationship("Notification", back_populates="creator", lazy="selectin", cascade="all, delete")
+    notification_details = relationship("NotificationDetail", back_populates="user", lazy="selectin", cascade="all, delete")
     questions = relationship("Question", back_populates="creator", lazy="selectin", cascade="all, delete")
+    exams = relationship("Exam", back_populates="user", lazy="selectin", cascade="all, delete")
+    tests = relationship("Test", back_populates="user", lazy="selectin", cascade="all, delete")

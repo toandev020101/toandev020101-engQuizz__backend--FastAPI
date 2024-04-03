@@ -18,3 +18,4 @@ class Question(BaseModel):
     creator = relationship("User", back_populates="questions", lazy="selectin")
 
     answers = relationship("Answer", back_populates="question", lazy="selectin", cascade="all, delete")
+    exam_details = relationship("ExamDetail", back_populates="question", lazy="selectin", cascade="all, delete")

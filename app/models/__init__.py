@@ -2,3 +2,10 @@ from app.models.BaseModel import BaseModel
 from app.models.User import User
 from app.models.Question import Question
 from app.models.Answer import Answer
+from app.models.OTP import OTP
+from app.models.Notification import Notification
+from app.models.Notification_detail import NotificationDetail
+from app.models.Exam import Exam
+from app.models.Exam_detail import ExamDetail
+from app.models.Result import Result
+from app.models.Test import Test

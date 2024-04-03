@@ -13,3 +13,5 @@ class Answer(BaseModel):
 
     question_id = Column(Integer, ForeignKey('questions.id'))
     question = relationship("Question", back_populates="answers", lazy="selectin")
+
+    exam_details = relationship("ExamDetail", back_populates="answer", lazy="selectin", cascade="all, delete")
