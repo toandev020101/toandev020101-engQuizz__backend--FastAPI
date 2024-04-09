@@ -21,4 +21,6 @@ class Exam(BaseModel):
     exam_details = relationship("ExamDetail", back_populates="exam", lazy="selectin", cascade="all, delete")
 
     def dict(self):
-        return super().to_dict()
+        result = super().to_dict()
+        result["test"] = self.test.to_dict()
+        return result

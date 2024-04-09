@@ -11,6 +11,9 @@ from app.schemas import ExamSchema, ExamCreateSchema, \
 
 
 class CRUDExam(CRUDBase[ExamSchema, ExamCreateSchema, ExamUpdateSchema]):
+    async def find_list_by_user_id(self, user_id: int, session: AsyncSession) -> List[ExamSchema]:
+        return await self.get_all(session, Exam.user_id == user_id)
+
     # async def find_pagination(self, _limit: int, _page: int, search_term: str, status_exam: str, session: AsyncSession):
     #     conditions = []
     #
