@@ -13,3 +13,6 @@ class OTP(BaseModel):
 
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="otp", uselist=False, lazy="selectin")
+
+    def dict(self):
+        return super().to_dict()

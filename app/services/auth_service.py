@@ -19,7 +19,7 @@ class AuthService:
         user = await crud_user.find_one_by_email(email=user_data.email, session=session)
         if user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail={"email": "Email đã tồn tại!"})
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email đã tồn tại!")
 
         # insert to table
         user_data.password = hash_password(user_data.password)
@@ -38,7 +38,7 @@ class AuthService:
         # send refresh token
         send_refresh_token(response=response, user=created_user)
 
-        return {"user": created_user.dict(un_selects=["password"]), "access_token": access_token}
+        return {"user": created_user.dict(), "access_token": access_token}
 
     @staticmethod
     async def verify_email(token: str, response: Response, session: AsyncSession):
@@ -61,7 +61,7 @@ class AuthService:
         # send refresh token
         send_refresh_token(response=response, user=updated_user)
 
-        return {"user": updated_user.dict(un_selects=["password"]), "access_token": access_token}
+        return {"user": updated_user.dict(), "access_token": access_token}
 
     @staticmethod
     async def resend_email(user_id: int, request: Request, session: AsyncSession):
@@ -84,15 +84,9 @@ class AuthService:
         # check user
         user = await crud_user.find_one_by_email(email=user_data.email, session=session)
 
-        if not user:
+        if not user or not verify_password(user_data.password, user.password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail={"email": "Email hoặc mật khẩu không chính xác!",
-                                        "password": "Email hoặc mật khẩu không chính xác!"})
-
-        if not verify_password(user_data.password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail={"email": "Email hoặc mật khẩu không chính xác!",
-                                                                 "password": "Email hoặc mật khẩu không chính xác!"})
+                                detail="Email hoặc mật khẩu không chính xác!")
 
         # generate token
         access_token = create_access_token(user=user)
@@ -100,7 +94,7 @@ class AuthService:
         # send refresh token
         send_refresh_token(response=response, user=user)
 
-        return {"user": user.dict(un_selects=["password"]), "access_token": access_token}
+        return {"user": user.dict(), "access_token": access_token}
 
     @staticmethod
     async def refresh_token(request: Request, response: Response, session: AsyncSession):

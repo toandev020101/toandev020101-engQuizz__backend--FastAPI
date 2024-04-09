@@ -22,6 +22,12 @@ class UserService:
         return {"users": to_list_dict(objects=users), "total": total}
 
     @staticmethod
+    async def get_list_by_role(session: AsyncSession):
+        users = await crud_user.find_list_by_role(session=session)
+
+        return {"users": to_list_dict(objects=users)}
+
+    @staticmethod
     async def get_one_by_id(id: int, session: AsyncSession):
         user = await crud_user.find_one_by_id(id=id, session=session)
 
@@ -36,11 +42,11 @@ class UserService:
 
         if user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail={"email": "Email đã tồn tại!"})
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email đã tồn tại!")
 
         user_data.password = hash_password(user_data.password)
         created_user = await crud_user.create_one(user_data=user_data, session=session)
-        return {"user": created_user.dict(un_selects=["password"])}
+        return {"user": created_user.dict()}
 
     @staticmethod
     async def update_one(id: int, user_data: UserUpdateSchema, session: AsyncSession):
@@ -51,7 +57,7 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Không tìm thấy tài khoản!")
 
         updated_user = await crud_user.update_one(id=id, user_data=user_data, session=session)
-        return {"user": updated_user.dict(un_selects=["password"])}
+        return {"user": updated_user.dict()}
 
     @staticmethod
     async def change_is_admin(id: int, is_admin: bool, session: AsyncSession):

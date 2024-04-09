@@ -28,4 +28,7 @@ class User(BaseModel):
     notification_details = relationship("NotificationDetail", back_populates="user", lazy="selectin", cascade="all, delete")
     questions = relationship("Question", back_populates="creator", lazy="selectin", cascade="all, delete")
     exams = relationship("Exam", back_populates="user", lazy="selectin", cascade="all, delete")
-    tests = relationship("Test", back_populates="user", lazy="selectin", cascade="all, delete")
+    tests = relationship("Test", back_populates="creator", lazy="selectin", cascade="all, delete")
+
+    def dict(self):
+        return super().to_dict()

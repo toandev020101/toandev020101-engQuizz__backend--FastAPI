@@ -25,17 +25,20 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
 
         return await self.get_multi(session, offset=_page * _limit, limit=_limit, *conditions)
 
-    async def find_one_by_id(self, id: int, session: AsyncSession) -> Optional[User]:
+    async def find_list_by_role(self, session: AsyncSession) -> List[UserSchema]:
+        return await self.get_all(session, User.is_admin == False)
+
+    async def find_one_by_id(self, id: int, session: AsyncSession) -> Optional[UserSchema]:
         return await self.get(session, User.id == id)
 
-    async def find_one_by_email(self, email: str, session: AsyncSession) -> Optional[User]:
+    async def find_one_by_email(self, email: str, session: AsyncSession) -> Optional[UserSchema]:
         return await self.get(session, User.email == email)
 
     async def create_one(self, user_data: UserCreateSchema, session: AsyncSession):
         return await self.create(session, obj_in=user_data)
 
     async def update_one(
-        self, id: int, user_data: UserUpdateSchema, session: AsyncSession
+            self, id: int, user_data: UserUpdateSchema, session: AsyncSession
     ) -> Optional[User]:
         user = await self.get(session, id=id)
 
@@ -45,7 +48,7 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
         return user
 
     async def update_token_version(
-        self, id: int, token_version: int, session: AsyncSession
+            self, id: int, token_version: int, session: AsyncSession
     ) -> Optional[User]:
         user = await self.get(session, id=id)
 
@@ -56,7 +59,7 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
         return user
 
     async def verify_email(
-        self, id: int, session: AsyncSession
+            self, id: int, session: AsyncSession
     ) -> Optional[User]:
         user = await self.get(session, id=id)
 
@@ -67,7 +70,7 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
         return user
 
     async def change_is_admin(
-        self, id: int, is_admin: bool, session: AsyncSession
+            self, id: int, is_admin: bool, session: AsyncSession
     ) -> Optional[User]:
         user = await self.get(session, id=id)
 
@@ -77,16 +80,16 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
 
         return user
 
-    async def delete_one(self, session: AsyncSession, id: int) -> Optional[User]:
-        product = await self.get(session, id=id)
+    async def delete_one(self, session: AsyncSession, id: int) -> Optional[UserSchema]:
+        user = await self.get(session, id=id)
 
-        if product:
+        if user:
             await self.delete(session, User.id == id)
-            return product
+            return user
 
         return None
 
-    async def delete_list(self, session: AsyncSession, ids: List[int]) -> List[User]:
+    async def delete_list(self, session: AsyncSession, ids: List[int]) -> List[UserSchema]:
         return await self.delete_bulk(session, ids=ids)
 
 

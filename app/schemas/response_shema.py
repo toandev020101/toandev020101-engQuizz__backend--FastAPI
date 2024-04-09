@@ -6,5 +6,5 @@ T = TypeVar('T')
 
 class ResponseSchema(BaseModel):
     status_code: int
-    detail: str | Dict[str, str]
+    detail: str
     data: Optional[T] = None

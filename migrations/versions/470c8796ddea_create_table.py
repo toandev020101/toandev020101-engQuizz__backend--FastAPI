@@ -1,8 +1,8 @@
 """create_table
 
-Revision ID: 53bf45a6eccd
+Revision ID: 470c8796ddea
 Revises: 
-Create Date: 2024-04-03 11:49:10.276674
+Create Date: 2024-04-08 20:51:40.093227
 
 """
 from typing import Sequence, Union
@@ -11,12 +11,13 @@ from alembic import op
 import sqlalchemy as sa
 
 from app.core import get_settings
-from app.utils import to_date, hash_password
+from app.utils import hash_password, to_date
 
 settings = get_settings()
 
+
 # revision identifiers, used by Alembic.
-revision: str = '53bf45a6eccd'
+revision: str = '470c8796ddea'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -104,8 +105,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('modified_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['question_id'], ['questions.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('content')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_answers_id'), 'answers', ['id'], unique=False)
     op.create_table('exams',
@@ -116,7 +116,7 @@ def upgrade() -> None:
     sa.Column('test_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('modified_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['test_id'], ['tests.id'], ),
+    sa.ForeignKeyConstraint(['test_id'], ['tests.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -135,7 +135,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_notification_details_user_id'), 'notification_details', ['user_id'], unique=False)
     op.create_table('exam_details',
     sa.Column('exam_id', sa.Integer(), nullable=False),
-    sa.Column('answer_id', sa.Integer(), nullable=False),
+    sa.Column('answer_id', sa.Integer(), nullable=True),
     sa.Column('question_id', sa.Integer(), nullable=False),
     sa.Column('position', sa.Integer(), server_default='0', nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
@@ -143,7 +143,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['answer_id'], ['answers.id'], ),
     sa.ForeignKeyConstraint(['exam_id'], ['exams.id'], ),
     sa.ForeignKeyConstraint(['question_id'], ['questions.id'], ),
-    sa.PrimaryKeyConstraint('exam_id', 'answer_id', 'question_id')
+    sa.PrimaryKeyConstraint('exam_id', 'question_id')
     )
     op.create_index(op.f('ix_exam_details_answer_id'), 'exam_details', ['answer_id'], unique=False)
     op.create_index(op.f('ix_exam_details_exam_id'), 'exam_details', ['exam_id'], unique=False)

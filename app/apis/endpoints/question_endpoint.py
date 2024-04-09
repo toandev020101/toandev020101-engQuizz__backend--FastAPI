@@ -13,16 +13,23 @@ settings = get_settings()
 router = APIRouter(prefix=f"{settings.BASE_API_SLUG}/question", tags=["Question"])
 
 
+@router.get("/all", response_model=ResponseSchema)
+async def get_question_all(session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
+    data = await QuestionService.get_all(session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy tất cả câu hỏi thành công", data=data)
+
+
 @router.get("", response_model=ResponseSchema)
 async def get_question_pagination(_limit: int = 5, _page: int = 0, search_term: str = "", level: str = "all",
-                                  session: AsyncSession = Depends(get_session)):
+                                  session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     data = await QuestionService.get_pagination(_limit=_limit, _page=_page, search_term=search_term, level=level,
                                                 session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách câu hỏi thành công", data=data)
 
 
 @router.get("/{id}", response_model=ResponseSchema)
-async def get_question_one_by_id(id: int, session: AsyncSession = Depends(get_session)):
+async def get_question_one_by_id(id: int, session: AsyncSession = Depends(get_session),
+                                 user_decode=Depends(check_auth)):
     data = await QuestionService.get_one_by_id(id=id, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy thông tin câu hỏi thành công", data=data)
 
@@ -37,24 +44,26 @@ async def add_question_one(question_data: QuestionCreateSchema,
 @router.post("/any", response_model=ResponseSchema)
 async def add_question_list(questions_data: List[QuestionCreateSchema],
                             session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
-    await QuestionService.add_list(creator_id=user_decode.get("user_id"), questions_data=questions_data, session=session)
+    await QuestionService.add_list(creator_id=user_decode.get("user_id"), questions_data=questions_data,
+                                   session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Thêm danh sách câu hỏi thành công")
 
 
 @router.put("/{id}", response_model=ResponseSchema)
 async def update_question_one(id: int, question_data: QuestionUpdateSchema,
-                              session: AsyncSession = Depends(get_session)):
+                              session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     await QuestionService.update_one(id=id, question_data=question_data, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Cập nhật câu hỏi thành công")
 
 
 @router.delete("/{id}", response_model=ResponseSchema)
-async def remove_question_one(id: int, session: AsyncSession = Depends(get_session)):
+async def remove_question_one(id: int, session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     data = await QuestionService.remove_one(id=id, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Xóa câu hỏi thành công", data=data)
 
 
 @router.delete("", response_model=ResponseSchema)
-async def remove_question_list(remove_data: RemoveSchema, session: AsyncSession = Depends(get_session)):
+async def remove_question_list(remove_data: RemoveSchema, session: AsyncSession = Depends(get_session),
+                               user_decode=Depends(check_auth)):
     data = await QuestionService.remove_list(ids=remove_data.ids, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Xóa danh sách câu hỏi thành công", data=data)

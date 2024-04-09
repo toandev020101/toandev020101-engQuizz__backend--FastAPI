@@ -19,3 +19,8 @@ class Question(BaseModel):
 
     answers = relationship("Answer", back_populates="question", lazy="selectin", cascade="all, delete")
     exam_details = relationship("ExamDetail", back_populates="question", lazy="selectin", cascade="all, delete")
+
+    def dict(self):
+        result = super().to_dict()
+        result["answers"] = [answer.to_dict() for answer in self.answers]
+        return result

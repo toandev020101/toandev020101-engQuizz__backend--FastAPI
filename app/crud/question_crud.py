@@ -10,6 +10,9 @@ from app.schemas import QuestionSchema, QuestionCreateSchema, \
 
 
 class CRUDQuestion(CRUDBase[QuestionSchema, QuestionCreateSchema, QuestionUpdateSchema]):
+    async def find_all(self, session: AsyncSession):
+        return await self.get_all(session)
+
     async def find_pagination(self, _limit: int, _page: int, search_term: str, level: str, session: AsyncSession):
         conditions = []
 
@@ -25,7 +28,7 @@ class CRUDQuestion(CRUDBase[QuestionSchema, QuestionCreateSchema, QuestionUpdate
     async def find_one_by_id(self, id: int, session: AsyncSession) -> Optional[Question]:
         return await self.get(session, Question.id == id)
 
-    async def find_one_by_content(self, content: str, session: AsyncSession) -> Optional[Question]:
+    async def find_one_by_content(self, content: str, session: AsyncSession) -> Optional[QuestionSchema]:
         return await self.get(session, Question.content == content)
 
     async def create_one(self, question_data: QuestionCreateSchema, session: AsyncSession):
@@ -41,16 +44,16 @@ class CRUDQuestion(CRUDBase[QuestionSchema, QuestionCreateSchema, QuestionUpdate
 
         return question
 
-    async def delete_one(self, session: AsyncSession, id: int) -> Optional[Question]:
-        product = await self.get(session, id=id)
+    async def delete_one(self, session: AsyncSession, id: int) -> Optional[QuestionSchema]:
+        question = await self.get(session, id=id)
 
-        if product:
+        if question:
             await self.delete(session, Question.id == id)
-            return product
+            return question
 
         return None
 
-    async def delete_list(self, session: AsyncSession, ids: List[int]) -> List[Question]:
+    async def delete_list(self, session: AsyncSession, ids: List[int]) -> List[QuestionSchema]:
         return await self.delete_bulk(session, ids=ids)
 
 

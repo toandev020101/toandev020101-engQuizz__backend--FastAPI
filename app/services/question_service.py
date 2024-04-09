@@ -13,13 +13,18 @@ settings = get_settings()
 
 class QuestionService:
     @staticmethod
+    async def get_all(session: AsyncSession):
+        questions = await crud_question.find_all(session=session)
+        return {"questions": to_list_dict(objects=questions, )}
+
+    @staticmethod
     async def get_pagination(_limit: int, _page: int, search_term: str, level: str,
                              session: AsyncSession):
         questions = await crud_question.find_pagination(_limit=_limit, _page=_page, search_term=search_term,
                                                         level=level, session=session)
 
         total = await crud_question.count_all(session=session)
-        return {"questions": to_list_dict(objects=questions, relationship_levels={"answers": True}), "total": total}
+        return {"questions": to_list_dict(objects=questions), "total": total}
 
     @staticmethod
     async def get_one_by_id(id: int, session: AsyncSession):
@@ -28,7 +33,7 @@ class QuestionService:
         if not question:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy câu hỏi!")
 
-        return {"question": question.dict(relationship_levels={"answers": True})}
+        return {"question": question.dict()}
 
     @staticmethod
     async def add_one(creator_id: int, question_data: QuestionCreateSchema, session: AsyncSession):
@@ -36,7 +41,7 @@ class QuestionService:
 
         if question:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail={"content": "Nội dung đã tồn tại!"})
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Nội dung đã tồn tại!")
 
         question_data_answers = question_data.answers
         del question_data.answers
@@ -44,7 +49,7 @@ class QuestionService:
         created_question = await crud_question.create_one(question_data=question_data, session=session)
         await crud_answer.create_list(question_id=created_question.id, answers_data=question_data_answers,
                                       session=session)
-        return {"question": created_question.dict(relationship_levels={"answers": True})}
+        return {"question": created_question.dict()}
 
     @staticmethod
     async def add_list(creator_id: int, questions_data: List[QuestionCreateSchema], session: AsyncSession):
@@ -53,7 +58,7 @@ class QuestionService:
 
             if question:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail={"content": "Nội dung đã tồn tại!"})
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="Nội dung đã tồn tại!")
 
         created_questions = []
         for question_data in questions_data:
@@ -64,7 +69,7 @@ class QuestionService:
             await crud_answer.create_list(question_id=created_question.id, answers_data=question_data_answers,
                                           session=session)
             created_questions.append(created_question)
-        return {"questions": to_list_dict(objects=created_questions, relationship_levels={"answers": True})}
+        return {"questions": to_list_dict(objects=created_questions)}
 
     @staticmethod
     async def update_one(id: int, question_data: QuestionUpdateSchema, session: AsyncSession):
@@ -81,7 +86,7 @@ class QuestionService:
         await crud_answer.delete_list_by_question_id(question_id=updated_question.id, session=session)
         await crud_answer.create_list(question_id=updated_question.id, answers_data=question_data_answers,
                                       session=session)
-        return {"question": updated_question.dict(relationship_levels={"answers": True})}
+        return {"question": updated_question.dict()}
 
     @staticmethod
     async def remove_one(id: int, session: AsyncSession):
@@ -89,7 +94,7 @@ class QuestionService:
         if not removed_question:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Không tìm thấy câu hỏi!")
-        return removed_question.dict(relationship_levels={"answers": True})
+        return removed_question.dict()
 
     @staticmethod
     async def remove_list(ids: List[int], session: AsyncSession):
@@ -97,4 +102,4 @@ class QuestionService:
         if not removed_questions:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Không tìm thấy câu hỏi!")
-        return to_list_dict(objects=removed_questions, relationship_levels={"answers": True})
+        return to_list_dict(objects=removed_questions, )

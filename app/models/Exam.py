@@ -8,8 +8,8 @@ class Exam(BaseModel):
     __tablename__ = "exams"
 
     id = Column(Integer, primary_key=True, index=True)
-    exam_time_at = Column(DateTime, nullable=False)
-    exam_time = Column(Integer, default=0, server_default="0", nullable=False)
+    exam_time_at = Column(DateTime(timezone=True), nullable=True)
+    exam_time = Column(Integer, default=0, server_default="0", nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="exams", lazy="selectin")
@@ -19,3 +19,6 @@ class Exam(BaseModel):
 
     result = relationship("Result", back_populates="exam", lazy="selectin", cascade="all, delete")
     exam_details = relationship("ExamDetail", back_populates="exam", lazy="selectin", cascade="all, delete")
+
+    def dict(self):
+        return super().to_dict()

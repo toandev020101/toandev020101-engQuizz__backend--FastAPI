@@ -14,3 +14,6 @@ class NotificationDetail(BaseModel):
     notification = relationship("Notification", back_populates="notification_details", lazy="selectin")
 
     is_readed = Column(Boolean, nullable=False, default=False, server_default="false")
+
+    def dict(self):
+        return super().to_dict()
