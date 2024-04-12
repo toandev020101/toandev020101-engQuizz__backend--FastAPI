@@ -41,7 +41,8 @@ class ExamService:
 
         result_data = ResultCreateSchema(score=score, correct_quantity=correct_quantity, exam_id=exam.id)
         await crud_result.create_one(result_data=result_data, session=session)
-        updated_exam = await crud_exam.update_one(id=exam.id, exam_data=ExamUpdateSchema(is_submitted=True), session=session)
+        updated_exam = await crud_exam.update_one(id=exam.id, exam_data=ExamUpdateSchema(is_submitted=True),
+                                                  session=session)
         await session.commit()
 
         return updated_exam

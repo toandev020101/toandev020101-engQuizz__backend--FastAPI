@@ -47,9 +47,13 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
                 await websocket.close()
                 return
 
+
+    except ValueError as ve:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON format.")
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Đáp án không hợp lệ!")
+        await websocket.close(code=status.WS_1006_ABNORMAL_CLOSURE)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error.")
 
 
 @router.websocket("/receive/{exam_id}/{user_id}")
@@ -88,7 +92,7 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
                                              exam_time=updated_exam.test.exam_time - time_down)
                 await ExamService.update_exam_time_by_id(id=exam_id, exam_data=exam_data, session=session)
                 if exam_index:
-                    del user_exams[exam_index]
+                    user_exams.remove(user_exams[exam_index])
                 await websocket.close()
                 return
 
@@ -96,11 +100,11 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
             time_down -= 1
             user_exams[exam_index]["time_down"] = time_down
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Lỗi máy chủ!")
+        await websocket.close(code=status.WS_1006_ABNORMAL_CLOSURE)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error.")
     finally:
         exam_data = ExamUpdateSchema(exam_time_at=exam_time_at,
                                      exam_time=data["exam"]["test"]["exam_time"] - time_down)
         await ExamService.update_exam_time_by_id(id=exam_id, exam_data=exam_data, session=session)
         if exam_index:
-            del user_exams[exam_index]
+            user_exams.remove(user_exams[exam_index])
