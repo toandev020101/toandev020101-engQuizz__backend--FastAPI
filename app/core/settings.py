@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = os.environ.get("ADMIN_EMAIL", "admin@gmail.com")
     ADMIN_PASSWORD: str = os.environ.get("ADMIN_PASSWORD", "123456")
 
+    # WEBSOCKET
+    WEBSOCKET_URL: str = f"ws://{APP_HOST}:{APP_PORT}"
+
 
 @lru_cache()
 def get_settings() -> Settings:

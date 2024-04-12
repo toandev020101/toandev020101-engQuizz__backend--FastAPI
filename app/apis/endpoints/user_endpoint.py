@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 

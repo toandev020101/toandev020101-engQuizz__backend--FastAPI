@@ -41,7 +41,7 @@ class Test(BaseModel):
 
             result["exams"].append({
                 **exam.to_dict(),
-                "user": exam.user.to_dict(),
+                "user": exam.user.to_dict(un_selects=["password"]),
                 "exam_details": exam_details
             })
         return result

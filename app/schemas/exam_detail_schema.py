@@ -18,6 +18,7 @@ class ExamDetailCreateSchema(ExamDetailBase):
 
 class ExamDetailUpdateSchema(ExamDetailBase):
     answer_id: int
+    is_answer_draft: bool
 
 
 class ExamDetailSchema(ExamDetailBase):

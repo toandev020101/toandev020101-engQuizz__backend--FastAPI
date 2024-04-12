@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.models import BaseModel
@@ -10,6 +10,7 @@ class Exam(BaseModel):
     id = Column(Integer, primary_key=True, index=True)
     exam_time_at = Column(DateTime(timezone=True), nullable=True)
     exam_time = Column(Integer, default=0, server_default="0", nullable=True)
+    is_submitted = Column(Boolean, default=False, server_default="false", nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="exams", lazy="selectin")
@@ -23,4 +24,16 @@ class Exam(BaseModel):
     def dict(self):
         result = super().to_dict()
         result["test"] = self.test.to_dict()
+        result["user"] = self.user.to_dict(un_selects=["password"])
+        result["exam_details"] = []
+        for exam_detail in self.exam_details:
+            question = {
+                **exam_detail.question.to_dict(),
+                "answers": [answer.to_dict(un_selects=["is_correct"]) for answer in exam_detail.question.answers],
+            }
+
+            result["exam_details"].append({
+                **exam_detail.to_dict(),
+                "question": question
+            })
         return result

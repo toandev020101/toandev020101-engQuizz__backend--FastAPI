@@ -1,8 +1,8 @@
 """create_table
 
-Revision ID: 470c8796ddea
+Revision ID: 322226eee55e
 Revises: 
-Create Date: 2024-04-08 20:51:40.093227
+Create Date: 2024-04-11 01:55:03.461391
 
 """
 from typing import Sequence, Union
@@ -15,9 +15,8 @@ from app.utils import hash_password, to_date
 
 settings = get_settings()
 
-
 # revision identifiers, used by Alembic.
-revision: str = '470c8796ddea'
+revision: str = '322226eee55e'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -79,8 +78,8 @@ def upgrade() -> None:
     op.create_table('tests',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('start_date', sa.DateTime(), nullable=False),
-    sa.Column('end_date', sa.DateTime(), nullable=False),
+    sa.Column('start_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('end_date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('exam_time', sa.Integer(), server_default='0', nullable=False),
     sa.Column('easy_quantity', sa.Integer(), server_default='0', nullable=False),
     sa.Column('average_quantity', sa.Integer(), server_default='0', nullable=False),
@@ -110,13 +109,14 @@ def upgrade() -> None:
     op.create_index(op.f('ix_answers_id'), 'answers', ['id'], unique=False)
     op.create_table('exams',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('exam_time_at', sa.DateTime(), nullable=False),
-    sa.Column('exam_time', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('exam_time_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('exam_time', sa.Integer(), server_default='0', nullable=True),
+    sa.Column('is_submitted', sa.Boolean(), server_default='false', nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('test_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('modified_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['test_id'], ['tests.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['test_id'], ['tests.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -138,6 +138,7 @@ def upgrade() -> None:
     sa.Column('answer_id', sa.Integer(), nullable=True),
     sa.Column('question_id', sa.Integer(), nullable=False),
     sa.Column('position', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('is_answer_draft', sa.Boolean(), server_default='false', nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('modified_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['answer_id'], ['answers.id'], ),

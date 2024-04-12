@@ -16,3 +16,10 @@ async def get_exam_list_by_user_id(session: AsyncSession = Depends(get_session),
                                    user_decode=Depends(check_auth)):
     data = await ExamService.get_list_by_user_id(user_id=user_decode.get("user_id"), session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách bài thi thành công", data=data)
+
+
+@router.get("/{id}", response_model=ResponseSchema)
+async def get_exam_one_by_id(id: int, session: AsyncSession = Depends(get_session),
+                             user_decode=Depends(check_auth)):
+    data = await ExamService.get_one_by_id(id=id, session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy bài thi thành công", data=data)

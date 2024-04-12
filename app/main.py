@@ -11,7 +11,7 @@ from app.middlewares import logging_middleware
 from app.routes import init_router
 
 settings = get_settings()
-origins = [settings.CLIENT_URL]
+origins = [settings.CLIENT_URL, settings.WEBSOCKET_URL]
 
 
 def init_app():

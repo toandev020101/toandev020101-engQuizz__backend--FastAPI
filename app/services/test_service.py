@@ -61,7 +61,7 @@ class TestService:
 
         if not test:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Không tìm thấy đề thi!")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy đề thi!")
 
         test_data_exams = test_data.exams
         del test_data.exams

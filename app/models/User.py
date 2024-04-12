@@ -31,4 +31,4 @@ class User(BaseModel):
     tests = relationship("Test", back_populates="creator", lazy="selectin", cascade="all, delete")
 
     def dict(self):
-        return super().to_dict()
+        return super().to_dict(un_selects=["password"])

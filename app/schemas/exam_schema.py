@@ -17,8 +17,9 @@ class ExamCreateSchema(ExamBase):
 
 
 class ExamUpdateSchema(ExamBase):
-    exam_time_at: datetime
-    exam_time: int
+    exam_time_at: datetime = None
+    exam_time: int = None
+    is_submitted: bool = None
 
 
 class ExamSchema(ExamBase):
