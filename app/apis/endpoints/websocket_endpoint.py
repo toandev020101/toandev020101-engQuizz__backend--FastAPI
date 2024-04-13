@@ -2,13 +2,13 @@ import asyncio
 import json
 from datetime import datetime
 
+import pytz
 from fastapi import APIRouter, WebSocket, Depends, HTTPException, status
 
 from app.apis.depends import get_session
 from app.core import get_settings
 from app.schemas import ExamUpdateSchema, ExamDetailUpdateSchema
 from app.services import ExamService, ExamDetailService
-from app.utils import to_datetime
 
 settings = get_settings()
 
@@ -61,7 +61,7 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
     await websocket.accept()
     data = await ExamService.get_one_by_id(id=exam_id, session=session)
     time_down = data["exam"]["test"]["exam_time"] - data["exam"]["exam_time"]
-    exam_time_at = to_datetime(datetime.now().__str__()) if data["exam"]["exam_time_at"] is None else data["exam"][
+    exam_time_at = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')) if data["exam"]["exam_time_at"] is None else data["exam"][
         "exam_time_at"]
 
     exam_index = None
@@ -100,7 +100,6 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
             time_down -= 1
             user_exams[exam_index]["time_down"] = time_down
     except Exception as e:
-        await websocket.close(code=status.WS_1006_ABNORMAL_CLOSURE)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error.")
     finally:
         exam_data = ExamUpdateSchema(exam_time_at=exam_time_at,

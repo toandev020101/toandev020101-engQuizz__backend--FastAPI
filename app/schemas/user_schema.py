@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
     fullname: str
-    email: EmailStr
+    email: EmailStr = None
     gender: str
     birth_day: date
 
@@ -22,11 +22,17 @@ class UserCreateSchema(UserBase):
 
 class UserUpdateSchema(UserBase):
     avatar: str = None
-    is_admin: bool
+    is_admin: bool = None
 
 
 class UserChangeIsAdminSchema(BaseModel):
     is_admin: bool
+
+
+class UserChangePasswordSchema(BaseModel):
+    password: str
+    new_password: str
+    confirm_new_password: str
 
 
 class UserSchema(UserBase):

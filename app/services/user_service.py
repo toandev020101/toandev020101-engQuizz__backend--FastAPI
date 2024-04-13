@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_settings
 from app.crud import crud_user
-from app.schemas import UserCreateSchema, UserUpdateSchema
-from app.utils import to_list_dict, hash_password
+from app.schemas import UserCreateSchema, UserUpdateSchema, UserChangePasswordSchema
+from app.utils import to_list_dict, hash_password, verify_password
 
 settings = get_settings()
 
@@ -67,6 +67,18 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy tài khoản!")
 
         await crud_user.change_is_admin(id=id, is_admin=is_admin, session=session)
+
+    @staticmethod
+    async def change_password(id: int, user_data: UserChangePasswordSchema, session: AsyncSession):
+        user = await crud_user.find_one_by_id(id=id, session=session)
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy tài khoản!")
+
+        if not verify_password(user_data.password, user.password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mật khẩu cũ không chính xác!")
+
+        await crud_user.change_password(id=id, new_password=hash_password(user_data.new_password), session=session)
 
     @staticmethod
     async def remove_one(id: int, session: AsyncSession):

@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.apis.depends import get_session, check_auth
 from app.core import get_settings
-from app.schemas import ResponseSchema, RemoveSchema, UserChangeIsAdminSchema, UserCreateSchema, UserUpdateSchema
+from app.schemas import ResponseSchema, RemoveSchema, UserChangeIsAdminSchema, UserCreateSchema, UserUpdateSchema, \
+    UserChangePasswordSchema
 from app.services import UserService
 
 settings = get_settings()
@@ -51,6 +52,13 @@ async def change_user_is_admin(id: int, user_data: UserChangeIsAdminSchema,
                                session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     await UserService.change_is_admin(id=id, is_admin=user_data.is_admin, session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Thay đổi vai trò thành công")
+
+
+@router.patch("", response_model=ResponseSchema)
+async def change_user_password(user_data: UserChangePasswordSchema,
+                               session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
+    await UserService.change_password(id=user_decode.get("user_id"), user_data=user_data, session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Thay đổi mật khẩu thành công")
 
 
 @router.delete("/{id}", response_model=ResponseSchema)

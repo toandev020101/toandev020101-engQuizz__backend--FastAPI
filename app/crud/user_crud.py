@@ -80,6 +80,17 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
 
         return user
 
+    async def change_password(
+            self, id: int, new_password: str, session: AsyncSession
+    ) -> Optional[User]:
+        user = await self.get(session, id=id)
+
+        if user:
+            user.password = new_password
+            await session.commit()
+
+        return user
+
     async def delete_one(self, session: AsyncSession, id: int) -> Optional[UserSchema]:
         user = await self.get(session, id=id)
 
