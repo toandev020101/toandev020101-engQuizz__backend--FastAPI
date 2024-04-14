@@ -48,6 +48,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             select(self._model)
             .filter(*args)
             .filter_by(**kwargs)
+            .order_by(self._model.id.desc())
         )
         return result.scalars().all()
 

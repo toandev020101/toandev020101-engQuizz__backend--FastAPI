@@ -28,7 +28,7 @@ class Test(BaseModel):
 
     exams = relationship("Exam", back_populates="test", lazy="selectin", cascade="all, delete")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         result = super().to_dict()
         result["exams"] = []
         for exam in self.exams:

@@ -19,5 +19,5 @@ class ExamDetail(BaseModel):
     position = Column(Integer, default=0, server_default="0", nullable=False)
     is_answer_draft = Column(Boolean, default=False, server_default="false", nullable=False)
 
-    def dict(self):
+    def dict(self, un_selects=None):
         return super().to_dict()

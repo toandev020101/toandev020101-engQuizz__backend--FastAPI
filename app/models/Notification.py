@@ -17,5 +17,5 @@ class Notification(BaseModel):
     notification_details = relationship("NotificationDetail", back_populates="notification", lazy="selectin",
                                         cascade="all, delete")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         return super().to_dict()

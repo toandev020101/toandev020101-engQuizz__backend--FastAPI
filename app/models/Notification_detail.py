@@ -15,5 +15,5 @@ class NotificationDetail(BaseModel):
 
     is_readed = Column(Boolean, nullable=False, default=False, server_default="false")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         return super().to_dict()

@@ -14,5 +14,5 @@ class OTP(BaseModel):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="otp", uselist=False, lazy="selectin")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         return super().to_dict()

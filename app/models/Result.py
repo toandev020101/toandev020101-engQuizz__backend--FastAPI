@@ -14,5 +14,5 @@ class Result(BaseModel):
     exam_id = Column(Integer, ForeignKey('exams.id'))
     exam = relationship("Exam", back_populates="result", uselist=False, lazy="selectin", cascade="all, delete")
 
-    def dict(self):
-        return super().to_dict()
+    def dict(self, un_selects=None):
+        return super().to_dict(un_selects=un_selects)

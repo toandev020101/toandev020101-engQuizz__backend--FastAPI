@@ -11,7 +11,23 @@ settings = get_settings()
 router = APIRouter(prefix=f"{settings.BASE_API_SLUG}/exam", tags=["Exam"])
 
 
-@router.get("/", response_model=ResponseSchema)
+@router.get("/submit", response_model=ResponseSchema)
+async def get_exam_list_submit_by_user_id(session: AsyncSession = Depends(get_session),
+                                          user_decode=Depends(check_auth)):
+    data = await ExamService.get_list_submit_by_user_id(user_id=user_decode.get("user_id"), session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách bài thi thành công", data=data)
+
+
+@router.get("/pagination", response_model=ResponseSchema)
+async def get_question_pagination(_limit: int = 5, _page: int = 0, search_term: str = "", score: str = "all",
+                                  correct_quantity: str = "all", session: AsyncSession = Depends(get_session),
+                                  user_decode=Depends(check_auth)):
+    data = await ExamService.get_pagination(_limit=_limit, _page=_page, search_term=search_term, score=score,
+                                            correct_quantity=correct_quantity, session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách bài thi thành công", data=data)
+
+
+@router.get("", response_model=ResponseSchema)
 async def get_exam_list_by_user_id(session: AsyncSession = Depends(get_session),
                                    user_decode=Depends(check_auth)):
     data = await ExamService.get_list_by_user_id(user_id=user_decode.get("user_id"), session=session)

@@ -16,5 +16,5 @@ class Answer(BaseModel):
 
     exam_details = relationship("ExamDetail", back_populates="answer", lazy="selectin", cascade="all, delete")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         return super().to_dict()

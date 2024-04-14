@@ -18,18 +18,20 @@ class Exam(BaseModel):
     test_id = Column(Integer, ForeignKey("tests.id"))
     test = relationship("Test", back_populates="exams", lazy="selectin")
 
-    result = relationship("Result", back_populates="exam", lazy="selectin", cascade="all, delete")
+    result = relationship("Result", back_populates="exam", uselist=False, lazy="selectin", cascade="all, delete")
     exam_details = relationship("ExamDetail", back_populates="exam", lazy="selectin", cascade="all, delete")
 
-    def dict(self):
+    def dict(self, un_selects=None):
         result = super().to_dict()
         result["test"] = self.test.to_dict()
         result["user"] = self.user.to_dict(un_selects=["password"])
         result["exam_details"] = []
+        if self.result:
+            result["result"] = self.result.to_dict()
         for exam_detail in self.exam_details:
             question = {
                 **exam_detail.question.to_dict(),
-                "answers": [answer.to_dict(un_selects=["is_correct"]) for answer in exam_detail.question.answers],
+                "answers": [answer.to_dict(un_selects=un_selects) for answer in exam_detail.question.answers],
             }
 
             result["exam_details"].append({

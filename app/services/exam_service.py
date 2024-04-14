@@ -11,14 +11,31 @@ settings = get_settings()
 
 class ExamService:
     @staticmethod
+    async def get_pagination(_limit: int, _page: int, search_term: str, score: str,
+                             correct_quantity: str, session: AsyncSession):
+        exams = await crud_exam.find_pagination(_limit=_limit, _page=_page, search_term=search_term,
+                                                score=score, correct_quantity=correct_quantity, session=session)
+
+        total = await crud_exam.count_all(session=session)
+        return {"exams": to_list_dict(objects=exams), "total": total}
+
+    @staticmethod
+    async def get_list_submit_by_user_id(user_id: int, session: AsyncSession):
+        exams = await crud_exam.find_list_submit_by_user_id(user_id=user_id, session=session)
+        return {"exams": to_list_dict(objects=exams, un_selects=["is_correct"])}
+
+    @staticmethod
     async def get_list_by_user_id(user_id: int, session: AsyncSession):
         exams = await crud_exam.find_list_by_user_id(user_id=user_id, session=session)
-        return {"exams": to_list_dict(objects=exams)}
+        return {"exams": to_list_dict(objects=exams, un_selects=["is_correct"])}
 
     @staticmethod
     async def get_one_by_id(id: int, session: AsyncSession):
         exam = await crud_exam.find_one_by_id(id=id, session=session)
-        return {"exam": exam.dict()}
+        un_selects = []
+        if not exam.test.show_answer:
+            un_selects = ["is_correct"]
+        return {"exam": exam.dict(un_selects=un_selects)}
 
     @staticmethod
     async def update_exam_time_by_id(id: int, exam_data: ExamUpdateSchema, session: AsyncSession):
