@@ -22,6 +22,11 @@ class UserService:
         return {"users": to_list_dict(objects=users), "total": total}
 
     @staticmethod
+    async def count_student(session: AsyncSession):
+        count = await crud_user.count_student(session=session)
+        return {"count": count}
+
+    @staticmethod
     async def get_list_by_role(session: AsyncSession):
         users = await crud_user.find_list_by_role(session=session)
 

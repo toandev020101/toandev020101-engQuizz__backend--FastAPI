@@ -13,6 +13,11 @@ settings = get_settings()
 
 class QuestionService:
     @staticmethod
+    async def count_all(session: AsyncSession):
+        count = await crud_question.count_all(session=session)
+        return {"count": count}
+
+    @staticmethod
     async def get_all(session: AsyncSession):
         questions = await crud_question.find_all(session=session)
         return {"questions": to_list_dict(objects=questions, )}

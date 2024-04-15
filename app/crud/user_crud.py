@@ -34,6 +34,9 @@ class CRUDUser(CRUDBase[UserSchema, UserCreateSchema, UserUpdateSchema]):
     async def find_one_by_email(self, email: str, session: AsyncSession) -> Optional[UserSchema]:
         return await self.get(session, User.email == email)
 
+    async def count_student(self, session: AsyncSession) -> int:
+        return await self.count_all(session, User.is_admin == False)
+
     async def create_one(self, user_data: UserCreateSchema, session: AsyncSession):
         return await self.create(session, obj_in=user_data)
 

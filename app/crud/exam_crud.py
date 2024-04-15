@@ -11,6 +11,9 @@ from app.schemas import ExamSchema, ExamCreateSchema, \
 
 
 class CRUDExam(CRUDBase[ExamSchema, ExamCreateSchema, ExamUpdateSchema]):
+    async def find_all(self, session: AsyncSession) -> List[ExamSchema]:
+        return await self.get_all(session)
+
     async def find_list_submit_by_user_id(self, user_id: int, session: AsyncSession) -> List[ExamSchema]:
         return await self.get_all(session, and_(Exam.user_id == user_id, Exam.is_submitted == True))
 

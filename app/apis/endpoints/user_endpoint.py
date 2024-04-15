@@ -21,6 +21,12 @@ async def get_user_pagination(_limit: int = 5, _page: int = 0, search_term: str 
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách tài khoản thành công", data=data)
 
 
+@router.get("/count-student", response_model=ResponseSchema)
+async def count_user_student(session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
+    data = await UserService.count_student(session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy số lượng học viên thành công", data=data)
+
+
 @router.get("/any/student", response_model=ResponseSchema)
 async def get_list_user_by_role(session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     data = await UserService.get_list_by_role(session=session)

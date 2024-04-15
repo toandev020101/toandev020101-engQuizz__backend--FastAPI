@@ -13,6 +13,13 @@ settings = get_settings()
 router = APIRouter(prefix=f"{settings.BASE_API_SLUG}/question", tags=["Question"])
 
 
+@router.get("/count-all", response_model=ResponseSchema)
+async def count_exam_all(session: AsyncSession = Depends(get_session),
+                       user_decode=Depends(check_auth)):
+    data = await QuestionService.count_all(session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy số lượng câu hỏi thành công", data=data)
+
+
 @router.get("/all", response_model=ResponseSchema)
 async def get_question_all(session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
     data = await QuestionService.get_all(session=session)

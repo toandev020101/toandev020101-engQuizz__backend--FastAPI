@@ -13,6 +13,16 @@ settings = get_settings()
 
 class ExamService:
     @staticmethod
+    async def get_all(session: AsyncSession):
+        exams = await crud_exam.find_all(session=session)
+        return {"exams": to_list_dict(objects=exams, un_selects=["is_correct"])}
+
+    @staticmethod
+    async def count_all(session: AsyncSession):
+        count = await crud_exam.count_all(session=session)
+        return {"count": count}
+
+    @staticmethod
     async def get_pagination(_limit: int, _page: int, search_term: str, score: str,
                              correct_quantity: str, session: AsyncSession):
         exams = await crud_exam.find_pagination(_limit=_limit, _page=_page, search_term=search_term,

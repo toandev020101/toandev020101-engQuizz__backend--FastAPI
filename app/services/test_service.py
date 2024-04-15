@@ -24,6 +24,11 @@ class TestService:
         return {"tests": to_list_dict(objects=tests), "total": total}
 
     @staticmethod
+    async def count_all(session: AsyncSession):
+        count = await crud_test.count_all(session=session)
+        return {"count": count}
+
+    @staticmethod
     async def get_one_by_id(id: int, session: AsyncSession):
         test = await crud_test.find_one_by_id(id=id, session=session)
 

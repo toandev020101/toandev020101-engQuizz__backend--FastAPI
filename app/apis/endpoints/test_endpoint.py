@@ -14,9 +14,17 @@ router = APIRouter(prefix=f"{settings.BASE_API_SLUG}/test", tags=["Test"])
 @router.get("", response_model=ResponseSchema)
 async def get_test_pagination(_limit: int = 5, _page: int = 0, search_term: str = "", status_test: str = "all",
                               session: AsyncSession = Depends(get_session), user_decode=Depends(check_auth)):
-    data = await TestService.get_pagination(_limit=_limit, _page=_page, search_term=search_term, status_test=status_test,
-                                                session=session)
+    data = await TestService.get_pagination(_limit=_limit, _page=_page, search_term=search_term,
+                                            status_test=status_test,
+                                            session=session)
     return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy danh sách đề thi thành công", data=data)
+
+
+@router.get("/count-all", response_model=ResponseSchema)
+async def count_test_all(session: AsyncSession = Depends(get_session),
+                       user_decode=Depends(check_auth)):
+    data = await TestService.count_all(session=session)
+    return ResponseSchema(status_code=status.HTTP_200_OK, detail="Lấy số lượng đề thi thành công", data=data)
 
 
 @router.get("/{id}", response_model=ResponseSchema)
