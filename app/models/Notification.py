@@ -18,4 +18,11 @@ class Notification(BaseModel):
                                         cascade="all, delete")
 
     def dict(self, un_selects=None):
-        return super().to_dict()
+        result = super().to_dict()
+        result["notification_details"] = []
+        for notification_detail in self.notification_details:
+            result["notification_details"].append({
+                **notification_detail.to_dict(),
+                "user": notification_detail.user.dict(un_selects=["password"])
+            })
+        return result

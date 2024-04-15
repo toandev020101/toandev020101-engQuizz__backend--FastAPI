@@ -6,3 +6,5 @@ from app.crud.test_crud import crud_test
 from app.crud.exam_crud import crud_exam
 from app.crud.exam_detail_crud import crud_exam_detail
 from app.crud.result_crud import crud_result
+from app.crud.notification_crud import crud_notification
+from app.crud.notification_detail_crud import crud_notification_detail

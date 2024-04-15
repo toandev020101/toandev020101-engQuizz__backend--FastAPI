@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -63,3 +65,19 @@ class ExamService:
         await session.commit()
 
         return updated_exam
+
+    @staticmethod
+    async def remove_one(id: int, session: AsyncSession):
+        removed_exam = await crud_exam.delete_one(id=id, session=session)
+        if not removed_exam:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Không tìm thấy bài thi!")
+        return removed_exam.dict()
+
+    @staticmethod
+    async def remove_list(ids: List[int], session: AsyncSession):
+        removed_exams = await crud_exam.delete_list(ids=ids, session=session)
+        if not removed_exams:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Không tìm thấy bài thi!")
+        return to_list_dict(objects=removed_exams)

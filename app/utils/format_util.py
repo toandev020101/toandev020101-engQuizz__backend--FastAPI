@@ -21,3 +21,18 @@ def to_datetime(datetime_str: str):
     # Convert to the desired time zone
     target_tz = pytz.timezone('Asia/Ho_Chi_Minh')
     return dt.astimezone(target_tz)
+
+
+def to_date_time_full_format(date: datetime):
+    hours = date.hour
+    minutes = str(date.minute).zfill(2)  # Sử dụng zfill để thêm số 0 vào đầu nếu cần
+
+    am_pm = 'PM' if hours >= 12 else 'AM'
+    hours = hours % 12 or 12  # Đặt giờ thành 12 nếu là 0
+
+    day = str(date.day).zfill(2)
+    month = str(date.month).zfill(2)
+    year = date.year
+
+    return f"{hours}:{minutes} {am_pm} {day}/{month}/{year}"
+

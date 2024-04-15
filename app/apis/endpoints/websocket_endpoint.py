@@ -8,12 +8,14 @@ from fastapi import APIRouter, WebSocket, Depends, HTTPException, status
 from app.apis.depends import get_session
 from app.core import get_settings
 from app.schemas import ExamUpdateSchema, ExamDetailUpdateSchema
-from app.services import ExamService, ExamDetailService
+from app.services.exam_service import ExamService
+from app.services.exam_detail_service import ExamDetailService
 
 settings = get_settings()
 
 router = APIRouter(prefix=f"{settings.BASE_API_SLUG}/websocket", tags=["Websocket"])
 user_exams = []
+notification_users = []
 
 
 @router.websocket("/send/{exam_id}/{user_id}")
@@ -107,3 +109,22 @@ async def websocket_endpoint(websocket: WebSocket, exam_id: int, user_id: int, s
         await ExamService.update_exam_time_by_id(id=exam_id, exam_data=exam_data, session=session)
         if exam_index:
             user_exams.remove(user_exams[exam_index])
+
+
+@router.websocket("/receive-notification/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await websocket.accept()
+    notification_user = {"user_id": user_id, "websocket": websocket}
+
+    try:
+        if notification_user not in notification_users:
+            notification_users.append(notification_user)
+        while True:
+            data = await websocket.receive_text()
+            print(f"Received data: {data}")
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Server error.")
+
+    finally:
+        notification_users.remove(notification_user)

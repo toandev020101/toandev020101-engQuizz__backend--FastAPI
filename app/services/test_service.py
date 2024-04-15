@@ -4,9 +4,11 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_settings
-from app.crud import crud_answer, crud_test, crud_exam, crud_exam_detail
-from app.schemas import TestCreateSchema, TestUpdateSchema, ExamCreateSchema, ExamDetailCreateSchema
-from app.utils import to_list_dict, to_datetime
+from app.crud import crud_test, crud_exam, crud_exam_detail, crud_notification
+from app.schemas import TestCreateSchema, TestUpdateSchema, ExamCreateSchema, ExamDetailCreateSchema, \
+    NotificationCreateSchema
+from app.services.notification_service import NotificationService
+from app.utils import to_list_dict, to_datetime, to_date_time_full_format
 
 settings = get_settings()
 
@@ -53,6 +55,16 @@ class TestService:
                 exam_details_data.append(exam_detail_data)
 
         await crud_exam_detail.create_list(exam_details_data=exam_details_data, session=session)
+
+        user_ids = []
+        for exam in test_data_exams:
+            user_ids.append(exam["user_id"])
+        notification_data = NotificationCreateSchema(title="Bạn có một bài thi mới",
+                                                     content=f"{created_test.name} ({created_test.easy_quantity + created_test.average_quantity + created_test.difficult_quantity} câu)\nTừ {to_date_time_full_format(created_test.start_date)} đến {to_date_time_full_format(created_test.end_date)}\nThời gian làm bài {round(created_test.exam_time / 60)} phút",
+                                                     user_ids=user_ids)
+
+        await NotificationService.add_one(creator_id=creator_id, notification_data=notification_data,
+                                          type_message="info", session=session)
         return {"test": created_test.dict()}
 
     @staticmethod
@@ -88,6 +100,16 @@ class TestService:
                 exam_details_data.append(exam_detail_data)
 
         await crud_exam_detail.create_list(exam_details_data=exam_details_data, session=session)
+
+        user_ids = []
+        for exam in test_data_exams:
+            user_ids.append(exam["user_id"])
+        notification_data = NotificationCreateSchema(title="Một bài thi mà bạn có tham gia đã cập nhật!",
+                                                     content=f"{updated_test.name} ({updated_test.easy_quantity + updated_test.average_quantity + updated_test.difficult_quantity} câu)\nTừ {to_date_time_full_format(updated_test.start_date)} đến {to_date_time_full_format(updated_test.end_date)}\nThời gian làm bài {round(updated_test.exam_time / 60)} phút",
+                                                     user_ids=user_ids)
+
+        await NotificationService.add_one(creator_id=updated_test.creator_id, notification_data=notification_data,
+                                          type_message="warning", session=session)
         return {"test": updated_test.dict()}
 
     @staticmethod
@@ -96,6 +118,17 @@ class TestService:
         if not removed_test:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Không tìm thấy đề thi!")
+
+        user_ids = []
+        for exam in removed_test.exams:
+            user_ids.append(exam.user_id)
+        notification_data = NotificationCreateSchema(title="Một bài thi mà bạn có tham gia đã bị xóa!",
+                                                     content=f"{removed_test.name} ({removed_test.easy_quantity + removed_test.average_quantity + removed_test.difficult_quantity} câu)\nTừ {to_date_time_full_format(removed_test.start_date)} đến {to_date_time_full_format(removed_test.end_date)}\nThời gian làm bài {round(removed_test.exam_time / 60)} phút",
+                                                     user_ids=user_ids)
+
+        await NotificationService.add_one(creator_id=removed_test.creator_id, notification_data=notification_data,
+                                          type_message="error", session=session)
+
         return removed_test.dict()
 
     @staticmethod
@@ -104,4 +137,15 @@ class TestService:
         if not removed_tests:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Không tìm thấy đề thi!")
+
+        for removed_test in removed_tests:
+            user_ids = []
+            for exam in removed_test.exams:
+                user_ids.append(exam.user_id)
+            notification_data = NotificationCreateSchema(title="Một bài thi mà bạn có tham gia đã bị xóa!",
+                                                         content=f"{removed_test.name} ({removed_test.easy_quantity + removed_test.average_quantity + removed_test.difficult_quantity} câu)\nTừ {to_date_time_full_format(removed_test.start_date)} đến {to_date_time_full_format(removed_test.end_date)}\nThời gian làm bài {round(removed_test.exam_time / 60)} phút",
+                                                         user_ids=user_ids)
+
+            await NotificationService.add_one(creator_id=removed_test.creator_id, notification_data=notification_data,
+                                              type_message="error", session=session)
         return to_list_dict(objects=removed_tests)

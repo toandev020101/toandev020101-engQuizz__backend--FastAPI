@@ -14,3 +14,4 @@ def init_router(app: FastAPI):
     app.include_router(test_router)
     app.include_router(exam_router)
     app.include_router(websocket_router)
+    app.include_router(notification_router)

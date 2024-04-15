@@ -37,7 +37,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             .filter_by(**kwargs)
             .offset(offset)
             .limit(limit)
-            .order_by(self._model.id.desc())
+            .order_by(self._model.created_at.desc())
         )
         return result.scalars().all()
 
@@ -48,7 +48,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             select(self._model)
             .filter(*args)
             .filter_by(**kwargs)
-            .order_by(self._model.id.desc())
+            .order_by(self._model.created_at.desc())
         )
         return result.scalars().all()
 
