@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     # WEBSOCKET
     WEBSOCKET_URL: str = f"ws://{APP_HOST}:{APP_PORT}"
 
+    # OTP
+    OTP_EXPIRE_MINUTES: int = os.environ.get("OTP_EXPIRE_MINUTES", 2)
+    OTP_LIMITED: int = os.environ.get("OTP_LIMITED", 5)
+    OTP_SECRET_KEY: str = os.environ.get("OTP_SECRET_KEY", "JBSWY3DPEB3W64TMMQ")
+
 
 @lru_cache()
 def get_settings() -> Settings:

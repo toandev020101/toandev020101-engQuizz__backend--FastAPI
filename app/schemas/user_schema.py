@@ -41,3 +41,22 @@ class UserSchema(UserBase):
     is_verified: bool
     is_admin: bool
     token_version: int
+
+
+class UserForgotPasswordSchema(BaseModel):
+    email: str
+    new_password: str
+    otp: str
+
+
+class UserOTPPasswordSchema(BaseModel):
+    otp: str
+    email: str
+
+
+class UserSendOTPPasswordSchema(BaseModel):
+    email: str
+
+
+class UserRefreshOTPSchema(BaseModel):
+    email: str

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

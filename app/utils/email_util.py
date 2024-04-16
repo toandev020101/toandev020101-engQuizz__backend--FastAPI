@@ -11,11 +11,13 @@ from app.enums import EmailEnum
 settings = get_settings()
 
 subjects = {
-    'verify': "Email xác minh tài khoản EngQuizz"
+    'verify': "Email xác minh tài khoản EngQuizz",
+    'reset_password': "Email đặt lại mật khẩu tài khoản EngQuizz"
 }
 
 bodies = {
-    "verify": "verify_email_template.html"
+    "verify": "verify_email_template.html",
+    'reset_password': "reset_password_template.html"
 }
 
 dir_path = os.path.dirname(os.path.dirname(__file__))

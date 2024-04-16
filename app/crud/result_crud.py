@@ -4,12 +4,6 @@ from app.crud import CRUDBase
 from app.models import Result
 from app.schemas import ResultSchema, ResultCreateSchema, \
     ResultUpdateSchema
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.crud import CRUDBase
-from app.models import Result
-from app.schemas import ResultSchema, ResultCreateSchema, \
-    ResultUpdateSchema
 
 
 class CRUDResult(CRUDBase[ResultSchema, ResultCreateSchema, ResultUpdateSchema]):

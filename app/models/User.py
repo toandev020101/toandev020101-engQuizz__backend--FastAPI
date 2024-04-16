@@ -23,7 +23,7 @@ class User(BaseModel):
     is_admin = Column(Boolean, default=False, server_default="false", nullable=False)
     token_version = Column(Integer, default=0, server_default="0", nullable=False)
 
-    otp = relationship("OTP", back_populates="user", lazy="selectin", cascade="all, delete")
+    otp = relationship("OTP", back_populates="user", uselist=False, lazy="selectin", cascade="all, delete")
     notifications = relationship("Notification", back_populates="creator", lazy="selectin", cascade="all, delete")
     notification_details = relationship("NotificationDetail", back_populates="user", lazy="selectin", cascade="all, delete")
     questions = relationship("Question", back_populates="creator", lazy="selectin", cascade="all, delete")
@@ -31,4 +31,6 @@ class User(BaseModel):
     tests = relationship("Test", back_populates="creator", lazy="selectin", cascade="all, delete")
 
     def dict(self, un_selects=None):
-        return super().to_dict(un_selects=un_selects)
+        result = super().to_dict(un_selects=un_selects)
+        result["otp"] = self.otp.to_dict() if self.otp is not None else None
+        return result

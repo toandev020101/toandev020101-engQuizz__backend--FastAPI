@@ -10,4 +10,6 @@ from app.schemas.notification_schema import NotificationSchema, NotificationCrea
 from app.schemas.remove_schema import RemoveSchema
 from app.schemas.response_shema import ResponseSchema
 from app.schemas.user_schema import UserSchema, UserCreateSchema, UserUpdateSchema, UserLoginSchema, \
-    UserChangeIsAdminSchema, UserChangePasswordSchema
+    UserChangeIsAdminSchema, UserChangePasswordSchema, UserForgotPasswordSchema, UserOTPPasswordSchema, \
+    UserSendOTPPasswordSchema, UserRefreshOTPSchema
+from app.schemas.otp_schema import OTPSchema, OTPCreateSchema, OTPUpdateSchema
